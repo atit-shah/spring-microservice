@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  eureka1:
+    image: sc/eureka:latest
+    environment:
+      - SPRING.PROFILES.ACTIVE=eureka1
+      - EURKA.CLIENT.SERVICEURL.DEFAULTZONE=http://eureka2:18762/eureka/
+    ports:
+      - '18761:18761'
+    networks:
+      - scnet
+  eureka2:
+    image: sc/eureka:latest
+    environment:
+      - SPRING.PROFILES.ACTIVE=eureka2
+      - EURKA.CLIENT.SERVICEURL.DEFAULTZONE=http://eureka1:18761/eureka/
+    ports:
+      - '18762:18762'
+    networks:
+      - scnet
+  productdb:
+    image: mongo:5.0.3
+    ports:
+      - '27017:27017'
+    volumes:
+      - "/home/peda/Atit/Practice/spring-microservice/data/mongo:/data/db"
+    networks:
+      - scnet
+  cartdb:
+    image: mysql:5.7.31
+    environment:
+      - MYSQL_ROOT_PASSWORD=root10
+      - MYSQL_DATABASE=cartdb
+      - MYSQL_USER=cartdbuser
+      - MYSQL_PASSWORD=cartdbuser10
+    volumes:
+      - "/home/peda/Atit/Practice/spring-microservice/data/mysql:/var/lib/mysql"
+    ports:
+      - "3306:3306"
+    networks:
+      - scnet
+  product:
+    image: sc/product:latest
+    environment:
+      - SPRING.PROFILES.ACTIVE=docker      
+      - MONGO.HOST=productdb
+      - MONGO.PORT=27017
+      - MONGO.DB=productdb
+      - EUREKA.CLIENT.SERVICEURL.DEFAULTZONE=http://eureka1:18761/eureka/,http://eureka2:18762/eureka/
+    networks:
+      - scnet
+    ports:
+      - '5000-5005:5000'
+    deploy:      
+      replicas: 2
+    depends_on:
+      - productdb
+      - eureka1
+      - eureka2
+  cart:
+    image: sc/cart:latest
+    ports:
+      - "6000:6000"
+    environment:
+      - CARTDB.JDBCURL=jdbc:mysql://cartdb:3306/cartdb
+      - CARTDB.USERNAME=cartdbuser
+      - CARTDB.PASSWORD=cartdbuser10
+      - EUREKA.CLIENT.SERVICEURL.DEFAULTZONE=http://eureka1:18761/eureka/,http://eureka2:18762/eureka/
+    networks:
+      - scnet
+    depends_on:
+      - cartdb
+      - eureka1
+      - eureka2
+networks:
+  scnet:
+    driver: bridge
