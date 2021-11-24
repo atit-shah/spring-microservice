@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.learn.cloud.cart.dto.ProductResponse;
 
-@FeignClient(name = "product", path = "product")
+@FeignClient(name = "product-app", path = "product")
 public interface ProductServiceProxy {
 
 	@GetMapping(value = "/multi?idList={idList}", consumes = "application/json")
