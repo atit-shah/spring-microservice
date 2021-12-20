@@ -52,7 +52,7 @@ services:
     ports:
       - '5000-5001:5000'
     deploy:
-      replicas: 2
+      replicas: 1
     depends_on:
       - product-db
       - eureka1-srv
@@ -75,7 +75,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.31.1
     volumes:
-      - '/home/peda/Atit/Practice/spring-microservice/data/prometheus:/etc/prometheus'
+      - '/home/peda/Atit/Practice/spring-microservice/prometheus:/etc/prometheus'
     networks:
       - scnet
     ports:
@@ -83,6 +83,16 @@ services:
     depends_on:
       - product-srv
       - cart-srv
+  grafana:
+    image: grafana/grafana:8.2.5
+    volumes:
+      - '/home/peda/Atit/Practice/spring-microservice/data/grafana:/var/lib/grafana'
+    ports:
+      - '3000:3000'
+    depends_on:
+      - prometheus
+    networks:
+      - scnet
 networks:
   scnet:
     driver: bridge
